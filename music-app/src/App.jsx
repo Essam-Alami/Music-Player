@@ -1,9 +1,35 @@
-window.onSpotifyWebPlaybackSDKReady = () => {
-  const token = '[BQDIy4qMvSzZ2iBj3gn-6A6IF2BjRIQ65F_dG3mZqVJ7-dZ7aAgvNKowzoQCSaBcnNF0RJk11he3rMO6fxkkgC0GTsYVTRjcoWxxQryCmVA5sRTdWwE_wFbNvjf_wDOb1IR7qHvS4PbZXsivI6kuJjm7JyBgw_tYvxLnGsjWWKWmLSYYqInqTWZXJQOuD5XfRK5shLFP5EcXeyOgF2XQQrMbGbMJtNjS18AczKVE1J12BzEFBkNzr9vS9FvhvwMfSACqBDI0zeui0C_5k881-DCAYDv7EHShitAmsZfHdPouKcOy1QRdWmWQqoCFXwFvIBzp5g8uO8rOrtt7W431q6-GdUU]';
-  const player = new Spotify.Player({
-    name: 'Web Playback SDK Quick Start Player',
-    getOAuthToken: cb => { cb(token); },
-    volume: 0.5
-})};
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
+import './App.css'
+
+function App() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <>
+      <div>
+        <a href="https://vite.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.jsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
+  )
+}
 
 export default App
