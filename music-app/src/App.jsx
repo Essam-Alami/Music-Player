@@ -1,18 +1,9 @@
-import { useState } from 'react';
 import MusicPlayer from './components/MusicPlayer';
 
-function App(MusicPlayer) {
-
-
+function App() {
   return (
-     <Router>
-      <div className="MusicPlayer">
-        <Routes>
-          <Route path="/src/components/Player.jsx" element={Spotify.Player} />
-        </Routes>
-      </div>
-     </Router>
+    <div className="p-4">
+      <MusicPlayer />
+    </div>
   );
 }
-
-export default App
