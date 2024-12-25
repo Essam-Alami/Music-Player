@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX } from 'lucide-react';
 import { Slider } from "./ui/slider";
+import { useMusic } from '../context/MusicContext';
 
 const MusicPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -8,6 +9,7 @@ const MusicPlayer = () => {
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
+  const { currentSong, setCurrentSong, library } = useMusic();
   
   // Sample song data - in a real app, this would come from props or an API
   const currentSong = {
