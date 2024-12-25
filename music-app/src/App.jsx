@@ -1,6 +1,7 @@
 import React from 'react';
 import MusicPlayer from './components/MusicPlayer';
 import './App.css';
+import { MusicProvider } from './context/MusicContext';
 
 function App() {
   return (
@@ -10,6 +11,17 @@ function App() {
         <MusicPlayer />
       </div>
     </div>
+    
+  );
+}
+
+function App() {
+  return (
+    <MusicProvider>
+      <div className="app">
+        <MusicPlayer />
+      </div>
+    </MusicProvider>
   );
 }
 
