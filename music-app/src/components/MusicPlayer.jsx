@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX } from 'lucide-react';
 import { Slider } from "./ui/slider";
 import { useMusic } from '../context/MusicContext';
@@ -9,15 +9,40 @@ const MusicPlayer = () => {
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
-  const { currentSong, setCurrentSong, library } = useMusic();
+  const { currentSong, setCurrentSong, library, setLibrary } = useMusic();
 
   const audioRef = useRef(null);
+
+  // Load saved songs from localStorage on initial load
+  useEffect(() => {
+    const savedLibrary = JSON.parse(localStorage.getItem("musicLibrary")) || [];
+    if (savedLibrary.length > 0) {
+      setLibrary(savedLibrary);
+      setCurrentSong(savedLibrary[0]);
+    }
+  }, [setLibrary, setCurrentSong]);
+
+  // Save the library to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("musicLibrary", JSON.stringify(library));
+  }, [library]);
+
+  useEffect(() => {
+    if (currentSong && audioRef.current) {
+      console.log("Loading song:", currentSong.audio);
+      audioRef.current.src = currentSong.audio;
+      audioRef.current.load();
+      if (isPlaying) {
+        audioRef.current.play().catch((err) => console.error("Playback error:", err));
+      }
+    }
+  }, [currentSong, isPlaying]);
 
   const togglePlay = () => {
     if (isPlaying) {
       audioRef.current?.pause();
     } else {
-      audioRef.current?.play();
+      audioRef.current?.play().catch((err) => console.error("Playback error:", err));
     }
     setIsPlaying(!isPlaying);
   };
@@ -62,16 +87,65 @@ const MusicPlayer = () => {
     }
   };
 
-  const playNextSong = () => {
-    const currentIndex = library.findIndex((song) => song.title === currentSong.title);
-    const nextIndex = (currentIndex + 1) % library.length;
-    setCurrentSong(library[nextIndex]);
+  const AddSongForm = () => {
+    const [newSong, setNewSong] = useState({
+      title: "",
+      artist: "",
+      album: "",
+      cover: "",
+      audio: null,
+    });
+
+    const handleChange = (e) => {
+      const { name, value, files } = e.target;
+      if (name === "audio") {
+        setNewSong({ ...newSong, audio: files[0] });
+      } else {
+        setNewSong({ ...newSong, [name]: value });
+      }
+    };
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      if (newSong.audio) {
+        const audioUrl = URL.createObjectURL(newSong.audio);
+        console.log("Generated audio URL:", audioUrl);
+        const updatedSong = { ...newSong, audio: audioUrl };
+        const updatedLibrary = [...library, updatedSong];
+        setLibrary(updatedLibrary);
+        setCurrentSong(updatedSong);
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="mt-4">
+        <input name="title" placeholder="Title" onChange={handleChange} required />
+        <input name="artist" placeholder="Artist" onChange={handleChange} required />
+        <input name="album" placeholder="Album" onChange={handleChange} required />
+        <input name="cover" placeholder="Cover URL" onChange={handleChange} required />
+        <input name="audio" type="file" accept="audio/*" onChange={handleChange} required />
+        <button type="submit">Add Song</button>
+      </form>
+    );
   };
 
-  const playPreviousSong = () => {
-    const currentIndex = library.findIndex((song) => song.title === currentSong.title);
-    const prevIndex = (currentIndex - 1 + library.length) % library.length;
-    setCurrentSong(library[prevIndex]);
+  const SongLibrary = () => {
+    return (
+      <div className="mt-6">
+        <h3 className="text-lg font-bold">Song Library</h3>
+        <ul className="list-disc list-inside">
+          {library.map((song, index) => (
+            <li
+              key={index}
+              onClick={() => setCurrentSong(song)}
+              className="cursor-pointer hover:underline"
+            >
+              {song.title} - {song.artist}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
   };
 
   return (
@@ -80,42 +154,27 @@ const MusicPlayer = () => {
         ref={audioRef}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
-        src={currentSong.audio} // Dynamic song source
+        onError={(e) => console.error("Audio error:", e.target.error)}
+        controls
       />
-      
-      {/* Album Art and Info */}
-      <div className="flex items-center mb-6">
-        <img 
-          src={currentSong.cover} 
-          alt="Album cover" 
-          className="w-20 h-20 rounded-lg shadow-md"
-        />
-        <div className="ml-4">
-          <h2 className="text-xl font-bold">{currentSong.title}</h2>
-          <p className="text-gray-600">{currentSong.artist}</p>
-          <p className="text-gray-500 text-sm">{currentSong.album}</p>
-        </div>
-      </div>
 
-      {/* Progress Bar */}
       <div className="mb-4">
         <Slider
           value={[currentTime]}
-          max={duration}
+          max={duration || 100}
           step={1}
           onValueChange={handleSeek}
           className="w-full"
         />
         <div className="flex justify-between text-sm text-gray-500 mt-1">
           <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
+          <span>{formatTime(duration || 100)}</span>
         </div>
       </div>
 
-      {/* Controls */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <button className="p-2 hover:bg-gray-100 rounded-full" onClick={playPreviousSong}>
+          <button className="p-2 hover:bg-gray-100 rounded-full" onClick={() => console.log("Previous clicked")}> 
             <SkipBack className="w-6 h-6" />
           </button>
           <button 
@@ -128,12 +187,11 @@ const MusicPlayer = () => {
               <Play className="w-6 h-6" />
             )}
           </button>
-          <button className="p-2 hover:bg-gray-100 rounded-full" onClick={playNextSong}>
+          <button className="p-2 hover:bg-gray-100 rounded-full" onClick={() => console.log("Next clicked")}> 
             <SkipForward className="w-6 h-6" />
           </button>
         </div>
 
-        {/* Volume Control */}
         <div className="flex items-center space-x-2">
           <button 
             className="p-2 hover:bg-gray-100 rounded-full"
@@ -154,8 +212,19 @@ const MusicPlayer = () => {
           />
         </div>
       </div>
+
+      <AddSongForm />
+      <SongLibrary />
     </div>
   );
 };
 
 export default MusicPlayer;
+
+
+
+
+
+
+
+
