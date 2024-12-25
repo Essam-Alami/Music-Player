@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX } from 'lucide-react';
-import { Slider } from '../src/components/ui/slider.jsx';
+import { Slider } from "./ui/slider";
 
 const MusicPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
