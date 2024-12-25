@@ -9,15 +9,7 @@ const MusicPlayer = () => {
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
-  const { setCurrentSong, library } = useMusic();
-  
-  // Sample song data - in a real app, this would come from props or an API
-  const currentSong = {
-    title: "Sample Song",
-    artist: "Sample Artist",
-    album: "Sample Album",
-    cover: "/api/placeholder/200/200"
-  };
+  const { currentSong, setCurrentSong, library } = useMusic();
 
   const audioRef = useRef(null);
 
@@ -70,13 +62,25 @@ const MusicPlayer = () => {
     }
   };
 
+  const playNextSong = () => {
+    const currentIndex = library.findIndex((song) => song.title === currentSong.title);
+    const nextIndex = (currentIndex + 1) % library.length;
+    setCurrentSong(library[nextIndex]);
+  };
+
+  const playPreviousSong = () => {
+    const currentIndex = library.findIndex((song) => song.title === currentSong.title);
+    const prevIndex = (currentIndex - 1 + library.length) % library.length;
+    setCurrentSong(library[prevIndex]);
+  };
+
   return (
     <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6">
       <audio
         ref={audioRef}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
-        src="https://example.com/sample-song.mp3"
+        src={currentSong.audio} // Dynamic song source
       />
       
       {/* Album Art and Info */}
@@ -111,7 +115,7 @@ const MusicPlayer = () => {
       {/* Controls */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <button className="p-2 hover:bg-gray-100 rounded-full">
+          <button className="p-2 hover:bg-gray-100 rounded-full" onClick={playPreviousSong}>
             <SkipBack className="w-6 h-6" />
           </button>
           <button 
@@ -124,7 +128,7 @@ const MusicPlayer = () => {
               <Play className="w-6 h-6" />
             )}
           </button>
-          <button className="p-2 hover:bg-gray-100 rounded-full">
+          <button className="p-2 hover:bg-gray-100 rounded-full" onClick={playNextSong}>
             <SkipForward className="w-6 h-6" />
           </button>
         </div>
