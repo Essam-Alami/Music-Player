@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import './App.css';
+import MusicPlayer from './components/MusicPlayer';
 
-function App() {
+function App(MusicPlayer) {
 
 
   return (
      <Router>
-      <div className="App">
+      <div className="MusicPlayer">
         <Routes>
-          <Route path="/" element={<HomePage />} />
           <Route path="/src/components/Player.jsx" element={Spotify.Player} />
         </Routes>
       </div>
