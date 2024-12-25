@@ -9,15 +9,7 @@ const MusicPlayer = () => {
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
-  const { currentSong, setCurrentSong, library } = useMusic();
-  
-  // Sample song data - in a real app, this would come from props or an API
-  const currentSong = {
-    title: "Sample Song",
-    artist: "Sample Artist",
-    album: "Sample Album",
-    cover: "/api/placeholder/200/200"
-  };
+  const { currentSong, setCurrentSong, library } = useMusic(); // Use `currentSong` from context
 
   const audioRef = useRef(null);
 
