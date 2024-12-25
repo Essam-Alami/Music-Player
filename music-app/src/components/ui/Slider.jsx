@@ -15,6 +15,7 @@ const Slider = React.forwardRef(({ className, ...props }, ref) => (
     />
   </SliderPrimitive.Root>
 ))
+
 Slider.displayName = "Slider"
 
 export { Slider }
