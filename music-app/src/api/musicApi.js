@@ -65,6 +65,8 @@ export async function fetchLibrary() {
     }
 }
 
+export default { searchSongs, addToLibrary, fetchLibrary};
+
 
 
   
