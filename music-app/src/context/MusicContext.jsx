@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { fetchLibrary, addToLibrary } from '../api/musicApi';
 
+
 const MusicContext = createContext();
 
 export function MusicProvider({ children }) {
@@ -22,7 +23,7 @@ export function MusicProvider({ children }) {
   const addSong = async (song) => {
     try {
       const addedSong = await addToLibrary(song);
-      setLibrary(prev => [...prev, addedSong]);
+      setLibrary((prev) => [...prev, addedSong]);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -30,7 +31,11 @@ export function MusicProvider({ children }) {
   };
 
   const removeSong = (songId) => {
-    setLibrary(prev => prev.filter(song => song.id !== songId));
+    setLibrary((prev) => {
+      const updatedLibrary = prev.filter((song) => song.id !== songId);
+      localStorage.setItem('library', JSON.stringify(updatedLibrary));
+      return updatedLibrary;
+    });
   };
 
   const nextSong = () => {
@@ -48,17 +53,19 @@ export function MusicProvider({ children }) {
   };
 
   return (
-    <MusicContext.Provider value={{
-      library,
-      currentSong,
-      error,
-      setCurrentSong,
-      addSong,
-      removeSong,
-      nextSong,
-      previousSong,
-      loadLibrary
-    }}>
+    <MusicContext.Provider
+      value={{
+        library,
+        currentSong,
+        error,
+        setCurrentSong,
+        addSong,
+        removeSong,
+        nextSong,
+        previousSong,
+        loadLibrary,
+      }}
+    >
       {children}
     </MusicContext.Provider>
   );

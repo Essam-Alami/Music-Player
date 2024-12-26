@@ -6,13 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Updated CSP to include hash and allow inline scripts -->
     <meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  script-src 'self' 'unsafe-inline';
-  style-src 'self' 'unsafe-inline';
-  font-src 'self';
-  img-src 'self' data:;
-  connect-src 'self' https://spotify23.p.rapidapi.com;
-">
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval';
+    style-src 'self' 'unsafe-inline';
+    font-src 'self';
+    img-src 'self' data: https://i.scdn.co;
+    connect-src 'self' https://spotify23.p.rapidapi.com;
+  ">
+  
     <title>Music Player</title>
   </head>
   <body>
