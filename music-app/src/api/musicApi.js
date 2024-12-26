@@ -28,5 +28,25 @@ const API_HEADERS = {
       throw new Error(`Search error: ${error.message}`);
     }
   }
+
+  export async function addToLibrary(song) {
+    try {
+      const response = await fetch(`${BASE_URL}/library`, {
+        method: 'POST',
+        headers: {
+          ...API_HEADERS,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(song),
+      });
+      if (!response.ok) throw new Error(`Failed to add song with status ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error('Add to library error:', error.message);
+      throw error;
+    }
+  }
+  
+  export { searchSongs, addToLibrary };
   
 
