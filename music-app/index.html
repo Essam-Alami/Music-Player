@@ -4,7 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval';">
+    <!-- Updated CSP to include hash and allow inline scripts -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'sha256-Km2IVBzPnAC5Ugj79Nd9dCSPtLVRgId80+fHKjQxRt4=';
+      style-src 'self' 'unsafe-inline';
+      font-src 'self';
+      img-src 'self' data:;
+      connect-src 'self' https://spotify23.p.rapidapi.com;
+    ">
     <title>Music Player</title>
   </head>
   <body>
@@ -12,3 +20,4 @@
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
+
