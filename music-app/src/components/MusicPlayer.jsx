@@ -36,12 +36,16 @@ const MusicPlayer = () => {
   const handleSearch = async () => {
     try {
       setError(null);
+      console.log('Searching for:', searchQuery); // Debugging
       const results = await searchSongs(searchQuery);
+      console.log('Search results:', results); // Verify format
       setSearchResults(results);
     } catch (err) {
-      setError('Search failed: ' + err.message);
+      console.error('Search failed:', err.message);
+      setError(`Search failed: ${err.message}`);
     }
   };
+  
 
   const handlePlayPause = () => {
     if (isPlaying) {
