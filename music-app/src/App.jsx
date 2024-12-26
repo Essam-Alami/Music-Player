@@ -4,16 +4,21 @@ import './App.css';
 import { MusicProvider } from './context/MusicContext';
 
 function App() {
+  console.log('App rendering...');
   return (
-    <MusicProvider>
-      <div className="app">
-        <div className="container">
-          <h1>Spotify Music Player</h1>
-          <MusicPlayer />
-        </div>
+<ErrorBoundary>
+  <MusicProvider>
+    <div className="app">
+      <div className="container">
+        <h1>Spotify Music Player</h1>
+        <MusicPlayer />
       </div>
-    </MusicProvider>
+    </div>
+  </MusicProvider>
+</ErrorBoundary>
+
   );
 }
 
 export default App;
+
