@@ -37,7 +37,8 @@ const MusicPlayer = () => {
       const results = await searchSongs(searchQuery);
       setSearchResults(results);
     } catch (err) {
-      setError(`Search failed: ${err.message}`);
+      console.error('Unable to reach requested data:', err.message);
+      setError(`Unable to reach requested data: ${err.message}`);
     }
   };
 
