@@ -22,13 +22,20 @@ export function MusicProvider({ children }) {
 
   const addSong = async (song) => {
     try {
-      const addedSong = await addToLibrary(song);
-      setLibrary((prev) => [...prev, addedSong]);
+      const exists = library.find((s) => s.id === song.id);
+      if (!exists) {
+        const addedSong = await addToLibrary(song);
+        setLibrary((prev) => [...prev, addedSong]);
+      } else {
+        console.warn('Song already exists in the library:', song.title);
+      }
       setError(null);
     } catch (err) {
       setError(err.message);
     }
   };
+  
+  
 
   const removeSong = (songId) => {
     setLibrary((prev) => {
@@ -37,6 +44,7 @@ export function MusicProvider({ children }) {
       return updatedLibrary;
     });
   };
+  
 
   const nextSong = () => {
     if (currentIndex < library.length - 1) {

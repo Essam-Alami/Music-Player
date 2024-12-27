@@ -1,10 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useMusic } from '../context/MusicContext';
 import { searchSongs } from '../api/musicApi';
-import { Play, Pause, SkipForward, SkipBack, Search } from 'lucide-react';
 
 const MusicPlayer = () => {
-  const { library, currentSong, setCurrentSong, addSong, nextSong, previousSong, loadLibrary } = useMusic();
+  const {
+    library,
+    currentSong,
+    setCurrentSong,
+    addSong,
+    removeSong,
+    nextSong,
+    previousSong,
+    loadLibrary,
+  } = useMusic();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [error, setError] = useState(null);
@@ -15,9 +23,11 @@ const MusicPlayer = () => {
   }, [loadLibrary]);
 
   useEffect(() => {
-    if (currentSong) {
+    if (currentSong && currentSong.url) {
       audioRef.current.src = currentSong.url;
       audioRef.current.play().catch((err) => setError('Playback failed: ' + err.message));
+    } else {
+      setError('No playable URL for the current song.');
     }
   }, [currentSong]);
 
@@ -30,6 +40,10 @@ const MusicPlayer = () => {
       console.error('Search failed:', err.message);
       setError(`Search failed: ${err.message}`);
     }
+  };
+
+  const handlePlaySong = (song) => {
+    setCurrentSong(song);
   };
 
   return (
@@ -53,9 +67,11 @@ const MusicPlayer = () => {
       {currentSong && (
         <div>
           <h3>Now Playing: {currentSong.title} by {currentSong.artist}</h3>
-          <audio ref={audioRef} controls />
-          <button onClick={previousSong}>Previous</button>
-          <button onClick={nextSong}>Next</button>
+          {currentSong.url ? (
+            <audio ref={audioRef} controls />
+          ) : (
+            <p>No playback URL available for this track.</p>
+          )}
         </div>
       )}
 
@@ -63,6 +79,8 @@ const MusicPlayer = () => {
       {library.map((song) => (
         <div key={song.id}>
           <span>{song.title} by {song.artist}</span>
+          <button onClick={() => handlePlaySong(song)}>Play</button>
+          <button onClick={() => removeSong(song.id)}>Remove</button>
         </div>
       ))}
     </div>

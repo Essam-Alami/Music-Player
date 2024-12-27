@@ -12,11 +12,11 @@ function App() {
       <div className="app">
         <div className="container">
           {/* Added a fallback UI and loading indicator for debugging */}
-          <h1>Spotify Music Player</h1>
+          <h1>Music Player</h1>
           <MusicPlayer />
           <footer>
             <h6 style={{ marginTop: '20px', textAlign: 'center' }}>
-              Debugging Spotify Music Player.....
+                  copyright 2024
             </h6>
           </footer>
         </div>
