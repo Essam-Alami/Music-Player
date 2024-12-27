@@ -1,0 +1,34 @@
+.music-player {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .search-bar {
+    margin-bottom: 20px;
+  }
+  
+  .search-results,
+  .library {
+    width: 100%;
+  }
+  
+  .song-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #f9f9f9;
+  }
+  
+  .controls {
+    margin-top: 10px;
+  }
+  
+  .volume-control {
+    margin-top: 10px;
+  }
+  

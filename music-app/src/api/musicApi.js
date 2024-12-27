@@ -53,6 +53,7 @@ export async function fetchLibrary() {
       headers: API_HEADERS,
     });
     if (!response.ok) throw new Error(`Failed to fetch library with status ${response.status}`);
+
     const data = await response.json();
     return data.tracks.items.map((track, index) => ({
       id: track.data.id || `${track.data.name}-${index}`, // Fallback id
@@ -63,11 +64,12 @@ export async function fetchLibrary() {
       coverArt: track.data.albumOfTrack.coverArt.sources[0]?.url,
     }));
   } catch (error) {
-    console.error('Fetch library error:', error.message);
-    return [];
+    console.error('API library fetch failed, falling back to local storage:', error.message);
+
+    // Fallback to local storage
+    return JSON.parse(localStorage.getItem('library')) || [];
   }
 }
-
 
 
 // Export all functions
