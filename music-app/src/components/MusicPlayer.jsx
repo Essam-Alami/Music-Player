@@ -29,7 +29,7 @@ const MusicPlayer = () => {
     } else {
       setError('No playable URL for the current song.');
     }
-  }, [currentSong]);
+  }, [currentSong]);  
 
   const handleSearch = async () => {
     try {

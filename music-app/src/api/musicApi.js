@@ -47,13 +47,27 @@ export async function addToLibrary(song) {
 // Fetch library
 export async function fetchLibrary() {
   try {
-    console.log('Fetching library from local storage...');
-    return JSON.parse(localStorage.getItem('library')) || [];
+    console.log('Fetching library from API...');
+    const response = await fetch(`${BASE_URL}/library`, {
+      method: 'GET',
+      headers: API_HEADERS,
+    });
+    if (!response.ok) throw new Error(`Failed to fetch library with status ${response.status}`);
+    const data = await response.json();
+    return data.tracks.items.map((track, index) => ({
+      id: track.data.id || `${track.data.name}-${index}`, // Fallback id
+      title: track.data.name,
+      artist: track.data.artists.items.map((artist) => artist.profile.name).join(', '),
+      album: track.data.albumOfTrack.name,
+      url: track.data.preview_url,
+      coverArt: track.data.albumOfTrack.coverArt.sources[0]?.url,
+    }));
   } catch (error) {
     console.error('Fetch library error:', error.message);
     return [];
   }
 }
+
 
 
 // Export all functions

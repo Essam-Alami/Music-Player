@@ -12,7 +12,6 @@ export function MusicProvider({ children }) {
 
   const loadLibrary = async () => {
     try {
-      if (!localStorage.getItem('library')) return;
       const data = await fetchLibrary();
       setLibrary(data);
       setError(null);
@@ -20,6 +19,7 @@ export function MusicProvider({ children }) {
       setError(err.message);
     }
   };
+  
   
 
   const addSong = async (song) => {
