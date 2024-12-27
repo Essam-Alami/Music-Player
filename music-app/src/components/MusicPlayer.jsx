@@ -60,6 +60,27 @@ const MusicPlayer = () => {
     setCurrentSong(song);
   };
 
+  const handleUploadTracks = (e) => {
+    const files = Array.from(e.target.files);
+    const newTracks = files.map((file, index) => ({
+      id: `${file.name}-${index}`,
+      title: file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
+      artist: 'Unknown',
+      album: 'Unknown',
+      url: URL.createObjectURL(file),
+    }));
+
+    const updatedLibrary = [...library, ...newTracks];
+    localStorage.setItem('library', JSON.stringify(updatedLibrary));
+  };
+
+  const handleDownloadTrack = (song) => {
+    const link = document.createElement('a');
+    link.href = song.url;
+    link.download = `${song.title}.mp3`;
+    link.click();
+  };
+
   return (
     <div className="music-player">
       {error && <div className="error">{error}</div>}
@@ -111,8 +132,13 @@ const MusicPlayer = () => {
             <span>{song.title} by {song.artist}</span>
             <button onClick={() => handlePlaySong(song)}>Play</button>
             <button onClick={() => removeSong(song.id)}>Remove</button>
+            <button onClick={() => handleDownloadTrack(song)}>Download</button>
           </div>
         ))}
+        <div>
+        <h3>Library Management</h3>
+        <input type="file" accept=".mp3" multiple onChange={handleUploadTracks} />
+      </div>
       </div>
     </div>
   );
