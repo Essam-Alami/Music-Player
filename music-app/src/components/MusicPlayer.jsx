@@ -28,11 +28,25 @@ const MusicPlayer = () => {
   }, [loadLibrary]);
 
   useEffect(() => {
-    if (currentSong && currentSong.url) {
-      audioRef.current.src = currentSong.url;
-      audioRef.current.play().catch((err) => setError('Playback failed: ' + err.message));
+    if ('mediaSession' in navigator && currentSong) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentSong.title,
+        artist: currentSong.artist,
+        album: currentSong.album,
+        artwork: [
+          { src: currentSong.coverArt, sizes: '96x96', type: 'image/png' },
+        ],
+      });
+  
+      navigator.mediaSession.setActionHandler('play', () => audioRef.current.play());
+      navigator.mediaSession.setActionHandler('pause', () => audioRef.current.pause());
+      navigator.mediaSession.setActionHandler('stop', () => {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      });
     }
   }, [currentSong]);
+  
 
   const handleSearch = async () => {
     try {
@@ -83,18 +97,27 @@ const MusicPlayer = () => {
     link.click();
   };
 
+  
   const handleDownloadLibrary = async () => {
-    const zip = new JSZip();
-    const folder = zip.folder('MusicLibrary');
-
-    library.forEach((song, index) => {
-      folder.file(`${song.title}-${index}.mp3`, fetch(song.url).then((res) => res.blob()));
-    });
-
-    const content = await zip.generateAsync({ type: 'blob' });
-    saveAs(content, 'MusicLibrary.zip');
+    try {
+      const zip = new JSZip();
+      const folder = zip.folder('MusicLibrary');
+  
+      await Promise.all(
+        library.map(async (song, index) => {
+          const response = await fetch(song.url);
+          const blob = await response.blob();
+          folder.file(`${song.title}-${index}.mp3`, blob);
+        })
+      );
+  
+      const content = await zip.generateAsync({ type: 'blob' });
+      saveAs(content, 'MusicLibrary.zip');
+    } catch (error) {
+      console.error('Library download failed:', error.message);
+    }
   };
-
+  
   return (
     <div className="music-player">
       {error && <div className="error">{error}</div>}
@@ -125,16 +148,19 @@ const MusicPlayer = () => {
             <button onClick={handlePlay}>Play</button>
             <button onClick={handleStop}>Stop</button>
             <div className="volume-control">
-              <label>Volume:</label>
-              <input
+          <label>Volume:</label>
+             <input
                 type="range"
                 min="0"
                 max="1"
                 step="0.1"
                 value={volume}
                 onChange={handleVolumeChange}
-              />
-            </div>
+                aria-label="Volume Control"
+       />
+          <span>{Math.round(volume * 100)}%</span>
+           </div>
+
           </div>
         </div>
       )}
