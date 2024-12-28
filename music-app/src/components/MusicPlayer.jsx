@@ -32,10 +32,10 @@ const MusicPlayer = () => {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: currentSong.title,
         artist: currentSong.artist,
-        album: currentSong.album,
-        artwork: [
-          { src: currentSong.coverArt, sizes: '96x96', type: 'image/png' },
-        ],
+        album: currentSong.album || 'Unknown Album',
+        artwork: currentSong.coverArt
+          ? [{ src: currentSong.coverArt, sizes: '96x96', type: 'image/png' }]
+          : [{ src: '/default-cover.png', sizes: '96x96', type: 'image/png' }], // Fallback artwork
       });
   
       navigator.mediaSession.setActionHandler('play', () => audioRef.current.play());
@@ -45,8 +45,7 @@ const MusicPlayer = () => {
         audioRef.current.currentTime = 0;
       });
     }
-  }, [currentSong]);
-  
+  }, [currentSong]);  
 
   const handleSearch = async () => {
     try {
