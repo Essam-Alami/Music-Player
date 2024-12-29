@@ -13,8 +13,6 @@ const MusicPlayer = () => {
     setCurrentSong,
     addSong,
     removeSong,
-    nextSong,
-    previousSong,
     loadLibrary,
   } = useMusic();
   const [searchQuery, setSearchQuery] = useState('');
@@ -176,7 +174,7 @@ const MusicPlayer = () => {
         ))}
       </div>
       <div className="library-management">
-        <input type="file" accept=".mp3" multiple onChange={handleUploadTracks} />
+        <label for="handleUploadTracks">Upload Tracks To library...</label><input type="file" accept=".mp3" multiple onChange={handleUploadTracks} />
         <button onClick={handleDownloadLibrary}>Download Entire Library</button>
       </div>
     </div>
