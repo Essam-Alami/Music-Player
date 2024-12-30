@@ -17,7 +17,7 @@
 }
 
 .mini-player {
-  position: fixed;
+  position: center, flex;
   bottom: 10px;
   right: 10px;
   background: #fff;
