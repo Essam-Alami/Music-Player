@@ -8,11 +8,11 @@ function App() {
     <MusicProvider>
       <div className="app">
         <div className="container">
-          <h1>Music Player</h1>
+          <h1>&copy;Musices</h1>
           <MusicPlayer />
           <footer>
             <h6 style={{ marginTop: '20px', textAlign: 'center' }}>
-              Copyright 2024
+              &copy;Copyright 2024
             </h6>
           </footer>
         </div>
