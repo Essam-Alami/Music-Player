@@ -4,6 +4,7 @@ import { searchSongs } from '../api/musicApi';
 import JSZip from 'jszip'; // Add JSZip for creating library zip downloads
 import { saveAs } from 'file-saver'; // For downloading files
 import './MusicPlayer.css';
+import { FixedSizeList as List } from 'react-window';
 
 
 const MusicPlayer = () => {
@@ -33,17 +34,52 @@ const MusicPlayer = () => {
         album: currentSong.album || 'Unknown Album',
         artwork: currentSong.coverArt
           ? [{ src: currentSong.coverArt, sizes: '96x96', type: 'image/png' }]
-          : [{ src: '/default-cover.png', sizes: '96x96', type: 'image/png' }], // Fallback artwork
+          : [{ src: '/default-cover.png', sizes: '96x96', type: 'image/png' }],
       });
   
-      navigator.mediaSession.setActionHandler('play', () => audioRef.current.play());
-      navigator.mediaSession.setActionHandler('pause', () => audioRef.current.pause());
-      navigator.mediaSession.setActionHandler('stop', () => {
+      const playHandler = () => audioRef.current.play();
+      const pauseHandler = () => audioRef.current.pause();
+      const stopHandler = () => {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
-      });
+      };
+  
+      navigator.mediaSession.setActionHandler('play', playHandler);
+      navigator.mediaSession.setActionHandler('pause', pauseHandler);
+      navigator.mediaSession.setActionHandler('stop', stopHandler);
+  
+      return () => {
+        navigator.mediaSession.setActionHandler('play', null);
+        navigator.mediaSession.setActionHandler('pause', null);
+        navigator.mediaSession.setActionHandler('stop', null);
+      };
     }
   }, [currentSong]);  
+
+  const LibraryList = () => {
+    const Row = ({ index, style }) => {
+      const song = library[index];
+      return (
+        <div style={style} className="song-item">
+          <span>{song.title} by {song.artist}</span>
+          <button onClick={() => setCurrentSong(song)}>Play</button>
+          <button onClick={() => removeSong(song.id)}>Remove</button>
+          <button onClick={() => handleDownloadTrack(song)}>Download</button>
+        </div>
+      );
+    };
+  
+    return (
+      <List
+        height={500}
+        itemCount={library.length}
+        itemSize={50}
+        width="100%"
+      >
+        {Row}
+      </List>
+    );
+  };
 
   const handleSearch = async () => {
     try {
@@ -56,11 +92,11 @@ const MusicPlayer = () => {
     }
   };
 
-  const handlePlay = () => {
-    audioRef.current.play();
-  };
 
   const handleStop = () => {
+    if (currentSong?.id !== song.id) {
+      setCurrentSong(song);
+    }
     audioRef.current.pause();
     audioRef.current.currentTime = 0;
   };
@@ -100,22 +136,30 @@ const MusicPlayer = () => {
       const zip = new JSZip();
       const folder = zip.folder('MusicLibrary');
   
-      await Promise.all(
-        library.map(async (song, index) => {
-          const response = await fetch(song.url);
-          const blob = await response.blob();
-          folder.file(`${song.title}-${index}.mp3`, blob);
-        })
-      );
+      // Process files sequentially to avoid freezing
+      for (const song of library) {
+        const response = await fetch(song.url);
+        const blob = await response.blob();
+        folder.file(`${song.title}.mp3`, blob);
+      }
   
       const content = await zip.generateAsync({ type: 'blob' });
       saveAs(content, 'MusicLibrary.zip');
     } catch (error) {
       console.error('Library download failed:', error.message);
     }
+  };  
+
+  const handlePlaySong = (song) => {
+    if (currentSong?.id !== song.id) {
+      setCurrentSong(song); // Only update if the song changes
+      audioRef.current.play();
+    }
   };
   
+  
   return (
+    
     <div className="music-player">
       {error && <div className="error">{error}</div>}
       <div className="search-bar">
@@ -142,7 +186,7 @@ const MusicPlayer = () => {
           <h3>Now Playing: {currentSong.title} by {currentSong.artist}</h3>
           <audio ref={audioRef} controls />
           <div className="controls">
-            <button onClick={handlePlay}>Play</button>
+            <button onClick={handlePlaySong}>Play</button>
             <button onClick={handleStop}>Stop</button>
             <div className="volume-control">
           <label>Volume:</label>
@@ -173,11 +217,13 @@ const MusicPlayer = () => {
           </div>
         ))}
       </div>
+
       <div className="library-management">
-        <label for="handleUploadTracks">Upload Tracks To library...</label><input type="file" accept=".mp3" multiple onChange={handleUploadTracks} />
+        <label htmlFor="handleUploadTracks">Upload Tracks To Library...</label><input type="file" accept=".mp3" multiple onChange={handleUploadTracks} />
         <button onClick={handleDownloadLibrary}>Download Entire Library</button>
       </div>
     </div>
+       
   );
 };
 

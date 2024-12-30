@@ -47,7 +47,7 @@ export async function addToLibrary(song) {
 
 export async function fetchLibrary() {
   try {
-    console.log('Fetching library from the API...');
+    console.log('Fetching library from local storage...');
     return JSON.parse(localStorage.getItem('library')) || [];
   } catch (error) {
     console.error('Fetch library error:', error.message);
