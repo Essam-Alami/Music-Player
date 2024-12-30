@@ -5,7 +5,7 @@ import JSZip from 'jszip'; // Add JSZip for creating library zip downloads
 import { saveAs } from 'file-saver'; // For downloading files
 import './MusicPlayer.css';
 import { FixedSizeList as List } from 'react-window';
-
+import { debounce } from 'lodash';
 
 const MusicPlayer = () => {
   const {
@@ -13,7 +13,6 @@ const MusicPlayer = () => {
     currentSong,
     setCurrentSong,
     addSong,
-    removeSong,
     loadLibrary,
   } = useMusic();
   const [searchQuery, setSearchQuery] = useState('');
@@ -136,11 +135,19 @@ const MusicPlayer = () => {
       const zip = new JSZip();
       const folder = zip.folder('MusicLibrary');
   
-      // Process files sequentially to avoid freezing
-      for (const song of library) {
-        const response = await fetch(song.url);
-        const blob = await response.blob();
-        folder.file(`${song.title}.mp3`, blob);
+      const CHUNK_SIZE = 5; // Fetch 5 files in parallel
+      for (let i = 0; i < library.length; i += CHUNK_SIZE) {
+        const chunk = library.slice(i, i + CHUNK_SIZE);
+        const blobs = await Promise.all(
+          chunk.map(async (song) => {
+            const response = await fetch(song.url);
+            return response.blob();
+          })
+        );
+        blobs.forEach((blob, index) => {
+          const song = chunk[index];
+          folder.file(`${song.title}.mp3`, blob);
+        });
       }
   
       const content = await zip.generateAsync({ type: 'blob' });
@@ -148,13 +155,33 @@ const MusicPlayer = () => {
     } catch (error) {
       console.error('Library download failed:', error.message);
     }
-  };  
+  };
+  
 
   const handlePlaySong = (song) => {
     if (currentSong?.id !== song.id) {
-      setCurrentSong(song); // Only update if the song changes
-      audioRef.current.play();
+      setCurrentSong(song);
     }
+    if (song.url) {
+      audioRef.current.src = song.url; // Set the audio source
+      audioRef.current.play().catch((err) => console.error('Playback error:', err.message));
+    } else {
+      console.error('No valid URL for playback:', song.title);
+    }
+  };
+  
+
+  const debouncedSetLibrary = debounce((library) => {
+    localStorage.setItem('library', JSON.stringify(library));
+    setLibrary(library);
+  }, 500);
+  
+  const removeSong = (songId) => {
+    setLibrary((prev) => {
+      const updatedLibrary = prev.filter((song) => song.id !== songId);
+      debouncedSetLibrary(updatedLibrary);
+      return updatedLibrary;
+    });
   };
   
   
