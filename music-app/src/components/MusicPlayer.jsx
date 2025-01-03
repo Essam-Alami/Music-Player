@@ -134,8 +134,8 @@ const MusicPlayer = () => {
     try {
       const zip = new JSZip();
       const folder = zip.folder('MusicLibrary');
+      const CHUNK_SIZE = 3;
   
-      const CHUNK_SIZE = 5; // Fetch 5 files in parallel
       for (let i = 0; i < library.length; i += CHUNK_SIZE) {
         const chunk = library.slice(i, i + CHUNK_SIZE);
         const blobs = await Promise.all(
@@ -155,20 +155,23 @@ const MusicPlayer = () => {
     } catch (error) {
       console.error('Library download failed:', error.message);
     }
-  };
+  };  
   
 
   const handlePlaySong = (song) => {
+    if (!song.url || !song.url.endsWith('.mp3')) {
+      console.error('Invalid or unsupported URL for playback:', song.url);
+      return;
+    }
+  
     if (currentSong?.id !== song.id) {
       setCurrentSong(song);
     }
-    if (song.url) {
-      audioRef.current.src = song.url; // Set the audio source
-      audioRef.current.play().catch((err) => console.error('Playback error:', err.message));
-    } else {
-      console.error('No valid URL for playback:', song.title);
-    }
+  
+    audioRef.current.src = song.url;
+    audioRef.current.play().catch((err) => console.error('Playback error:', err.message));
   };
+  
   
 
   const debouncedSetLibrary = debounce((library) => {

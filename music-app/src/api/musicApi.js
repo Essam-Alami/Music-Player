@@ -79,38 +79,32 @@ export async function fetchLibrary() {
       return JSON.parse(localStorage.getItem('library')) || [];
     }
 
-    console.log('Attempting to fetch library from local storage...');
-    const localLibrary = JSON.parse(localStorage.getItem('library'));
-    if (localLibrary && localLibrary.length > 0) {
-      console.log('Library loaded from local storage.');
-      libraryFetched = true;
-      return localLibrary;
-    }
-
-    console.log('Local storage empty, fetching library from API...');
+    console.log('Fetching library from API...');
     const response = await fetch(`${BASE_URL}/library`, {
       method: 'GET',
       headers: API_HEADERS,
     });
     if (!response.ok) throw new Error(`Failed to fetch library with status ${response.status}`);
+
     const data = await response.json();
     const library = data.tracks.items.map((track) => ({
       id: track.data.id,
       title: track.data.name,
       artist: track.data.artists.items.map((artist) => artist.profile.name).join(', '),
       album: track.data.albumOfTrack.name,
-      url: track.data.preview_url.endsWith('.mp3') ? track.data.preview_url : null, // Ensure .mp3 files
+      url: track.data.preview_url.endsWith('.mp3') ? track.data.preview_url : null,
       coverArt: track.data.albumOfTrack.coverArt.sources[0]?.url,
-    })).filter((track) => track.url); // Filter out invalid or non-mp3 tracks
+    })).filter((track) => track.url);
 
-    localStorage.setItem('library', JSON.stringify(library)); // Cache library in local storage
-    libraryFetched = true;
+    localStorage.setItem('library', JSON.stringify(library));
+    libraryFetched = true; // Prevent further fetches
     return library;
   } catch (error) {
     console.error('Fetch library error:', error.message);
     return [];
   }
 }
+
 
 
 // Throttled versions of the functions
