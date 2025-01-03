@@ -92,12 +92,12 @@ export async function fetchLibrary() {
       title: track.data.name,
       artist: track.data.artists.items.map((artist) => artist.profile.name).join(', '),
       album: track.data.albumOfTrack.name,
-      url: track.data.preview_url.endsWith('.mp3') ? track.data.preview_url : null,
+      url: track.data.preview_url, // Use directly if valid
       coverArt: track.data.albumOfTrack.coverArt.sources[0]?.url,
-    })).filter((track) => track.url);
+    })).filter((track) => track.url && track.url.endsWith('.mp3')); // Ensure valid URLs
 
     localStorage.setItem('library', JSON.stringify(library));
-    libraryFetched = true; // Prevent further fetches
+    libraryFetched = true;
     return library;
   } catch (error) {
     console.error('Fetch library error:', error.message);

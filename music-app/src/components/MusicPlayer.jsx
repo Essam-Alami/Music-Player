@@ -4,7 +4,6 @@ import { searchSongs } from '../api/musicApi';
 import JSZip from 'jszip'; // Add JSZip for creating library zip downloads
 import { saveAs } from 'file-saver'; // For downloading files
 import './MusicPlayer.css';
-import { FixedSizeList as List } from 'react-window';
 import { debounce } from 'lodash';
 
 const MusicPlayer = () => {
@@ -55,30 +54,17 @@ const MusicPlayer = () => {
     }
   }, [currentSong]);  
 
-  const LibraryList = () => {
-    const Row = ({ index, style }) => {
-      const song = library[index];
-      return (
-        <div style={style} className="song-item">
-          <span>{song.title} by {song.artist}</span>
-          <button onClick={() => setCurrentSong(song)}>Play</button>
-          <button onClick={() => removeSong(song.id)}>Remove</button>
-          <button onClick={() => handleDownloadTrack(song)}>Download</button>
-        </div>
-      );
+
+  useEffect(() => {
+    return () => {
+      library.forEach((song) => {
+        if (song.url.startsWith('blob:')) {
+          URL.revokeObjectURL(song.url);
+        }
+      });
     };
+  }, [library]);
   
-    return (
-      <List
-        height={500}
-        itemCount={library.length}
-        itemSize={50}
-        width="100%"
-      >
-        {Row}
-      </List>
-    );
-  };
 
   const handleSearch = async () => {
     try {
@@ -113,14 +99,17 @@ const MusicPlayer = () => {
       title: file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
       artist: 'Unknown',
       album: 'Unknown',
-      url: URL.createObjectURL(file),
+      url: URL.createObjectURL(file), // Create blob URL
     }));
-
+  
     const updatedLibrary = [...library, ...newTracks];
     localStorage.setItem('library', JSON.stringify(updatedLibrary));
-    setCurrentSong(updatedLibrary[0]); // Set the first uploaded track as the current song
     setLibrary(updatedLibrary);
+    if (!currentSong) {
+      setCurrentSong(newTracks[0]); // Set the first uploaded track as the current song
+    }
   };
+  
 
   const handleDownloadTrack = (song) => {
     const link = document.createElement('a');
@@ -159,8 +148,8 @@ const MusicPlayer = () => {
   
 
   const handlePlaySong = (song) => {
-    if (!song.url || !song.url.endsWith('.mp3')) {
-      console.error('Invalid or unsupported URL for playback:', song.url);
+    if (!song.url) {
+      console.error('Invalid song URL for playback:', song.title);
       return;
     }
   
@@ -168,8 +157,10 @@ const MusicPlayer = () => {
       setCurrentSong(song);
     }
   
-    audioRef.current.src = song.url;
-    audioRef.current.play().catch((err) => console.error('Playback error:', err.message));
+    audioRef.current.src = song.url; // Set the audio source
+    audioRef.current
+      .play()
+      .catch((err) => console.error('Playback error:', err.message));
   };
   
   
