@@ -35,4 +35,8 @@
   .loadLibrary {
     background: #510303;
   }
+
+  .library-load-button {
+    background: #ca0000;
+  }
   

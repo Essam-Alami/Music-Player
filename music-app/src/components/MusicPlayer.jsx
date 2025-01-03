@@ -18,10 +18,11 @@ const MusicPlayer = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [error, setError] = useState(null);
   const [volume, setVolume] = useState(1);
+  const [libraryLoaded, setLibraryLoaded] = useState(false); // Track if library is loaded
   const audioRef = useRef(null);
 
   useEffect(() => {
-    loadLibrary();
+
   }, [loadLibrary]);
 
   useEffect(() => {
@@ -178,11 +179,24 @@ const MusicPlayer = () => {
     });
   };
   
+  const handleLoadLibrary = async () => {
+    try {
+      await loadLibrary();
+      setLibraryLoaded(true); // Mark library as loaded
+    } catch (err) {
+      console.error('Failed to load library:', err.message);
+    }
+  };
   
   return (
     
     <div className="music-player">
       {error && <div className="error">{error}</div>}
+      <div className="library-load-button">
+        {!libraryLoaded && (
+          <button onClick={handleLoadLibrary}>Load Library</button>
+        )}
+      </div>
       <div className="search-bar">
         <input
           type="text"
@@ -228,23 +242,19 @@ const MusicPlayer = () => {
       )}
 
       <h3>Your Library</h3>
-      <div className="library">
-        {library.map((song) => (
-          <div className="song-item" key={song.id}>
-            <span>{song.title} by {song.artist}</span>
-            <button onClick={() => setCurrentSong(song)}>Play</button>
-            <button onClick={() => removeSong(song.id)}>Remove</button>
-            <button onClick={() => handleDownloadTrack(song)}>Download</button>
-          </div>
-        ))}
-      </div>
-
-      <div className="library-management">
-        <label htmlFor="handleUploadTracks">Upload Tracks To Library...</label><input type="file" accept=".mp3" multiple onChange={handleUploadTracks} />
-        <button onClick={handleDownloadLibrary}>Download Entire Library</button>
-      </div>
+      {libraryLoaded && (
+        <div className="library">
+          {library.map((song) => (
+            <div className="song-item" key={song.id}>
+              <span>{song.title} by {song.artist}</span>
+              <button onClick={() => setCurrentSong(song)}>Play</button>
+              <button onClick={() => removeSong(song.id)}>Remove</button>
+              <button onClick={() => handleDownloadTrack(song)}>Download</button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
-       
   );
 };
 

@@ -64,16 +64,16 @@ export function MusicProvider({ children }) {
 
   return (
     <MusicContext.Provider
-      value={{
-        library,
-        currentSong,
-        error,
-        setCurrentSong,
-        addSong,
-        removeSong,
-        nextSong,
-        previousSong,
-        loadLibrary,
+    value={{
+      library,
+      currentSong,
+      error,
+      setCurrentSong,
+      addSong,
+      removeSong,
+      nextSong,
+      previousSong,
+      loadLibrary, // Expose loadLibrary for manual triggering
       }}
     >
       {children}
