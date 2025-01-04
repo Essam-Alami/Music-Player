@@ -19,6 +19,8 @@ function throttle(func, limit) {
   };
 }
 
+const EXPRESS_SERVER_URL = 'http://localhost:5173/library';
+
 // Search for songs via the API
 export async function searchSongs(query) {
   try {
@@ -34,7 +36,7 @@ export async function searchSongs(query) {
       title: track.data.name,
       artist: track.data.artists.items.map((artist) => artist.profile.name).join(', '),
       album: track.data.albumOfTrack.name,
-      url: track.data.preview_url,
+      url: track.data.uri,
       coverArt: track.data.albumOfTrack.coverArt.sources[0]?.url,
     }));
   } catch (error) {
@@ -43,20 +45,17 @@ export async function searchSongs(query) {
   }
 }
 
-// Add a song to the library
+// Add a song to local storage and sync with Express server
 export async function addToLibrary(song) {
-  if (!song.url || !song.url.endsWith('.mp3')) {
-    throw new Error(`Invalid song URL: ${song.url}`);
-  }
-  
   try {
-    console.log('Adding song to external library:', song);
-    const response = await fetch(`${BASE_URL}/library`, {
+    const localLibrary = JSON.parse(localStorage.getItem('library')) || [];
+    const updatedLibrary = [...localLibrary, song];
+    localStorage.setItem('library', JSON.stringify(updatedLibrary)); // Save locally
+
+    console.log('Syncing song with Express server...');
+    const response = await fetch(EXPRESS_SERVER_URL, {
       method: 'POST',
-      headers: {
-        ...API_HEADERS,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(song),
     });
     if (!response.ok) throw new Error(`Failed to add song with status ${response.status}`);
@@ -71,33 +70,23 @@ export async function addToLibrary(song) {
 // State to track if the library has been successfully fetched
 let libraryFetched = false;
 
-// Fetch library from local storage or fallback to API
+// Fetch library from local storage or Express server
 export async function fetchLibrary() {
   try {
-    if (libraryFetched) {
-      console.log('Library already fetched. Skipping fetch.');
-      return JSON.parse(localStorage.getItem('library')) || [];
+    console.log('Fetching library from local storage...');
+    const localLibrary = JSON.parse(localStorage.getItem('library'));
+    if (localLibrary && localLibrary.length > 0) {
+      console.log('Library loaded from local storage.');
+      return localLibrary;
     }
 
-    console.log('Fetching library from API...');
-    const response = await fetch(`${BASE_URL}/library`, {
+    console.log('Fetching library from Express server...');
+    const response = await fetch(EXPRESS_SERVER_URL, {
       method: 'GET',
-      headers: API_HEADERS,
     });
     if (!response.ok) throw new Error(`Failed to fetch library with status ${response.status}`);
-
-    const data = await response.json();
-    const library = data.tracks.items.map((track) => ({
-      id: track.data.id,
-      title: track.data.name,
-      artist: track.data.artists.items.map((artist) => artist.profile.name).join(', '),
-      album: track.data.albumOfTrack.name,
-      url: track.data.preview_url, // Use directly if valid
-      coverArt: track.data.albumOfTrack.coverArt.sources[0]?.url,
-    })).filter((track) => track.url && track.url.endsWith('.mp3')); // Ensure valid URLs
-
-    localStorage.setItem('library', JSON.stringify(library));
-    libraryFetched = true;
+    const library = await response.json();
+    localStorage.setItem('library', JSON.stringify(library)); // Cache in local storage
     return library;
   } catch (error) {
     console.error('Fetch library error:', error.message);

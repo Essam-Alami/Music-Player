@@ -22,13 +22,18 @@ export function MusicProvider({ children }) {
   
   
 
-  const addSong = (songs) => {
-    setLibrary((prev) => {
-      const updatedLibrary = [...prev, ...songs];
-      localStorage.setItem('library', JSON.stringify(updatedLibrary));
-      return updatedLibrary;
-    });
+  const addSong = async (song) => {
+    try {
+      await addToLibrary(song); // Sync with server
+      setLibrary((prev) => [...prev, song]);
+    } catch (err) {
+      console.error('Error adding song:', err.message);
+      setError(err.message);
+    }
   };
+  
+  
+  
   
   
   
@@ -67,7 +72,7 @@ export function MusicProvider({ children }) {
       removeSong,
       nextSong,
       previousSong,
-      loadLibrary, // Expose loadLibrary for manual triggering
+      loadLibrary,
       }}
     >
       {children}

@@ -22,7 +22,7 @@ const MusicPlayer = () => {
   const audioRef = useRef(null);
 
   useEffect(() => {
-
+   
   }, [loadLibrary]);
 
   useEffect(() => {
@@ -152,7 +152,7 @@ const MusicPlayer = () => {
     audioRef.current
       .play()
       .catch((err) => console.error('Playback error:', err.message));
-  };
+  };  
   
   
   
@@ -203,7 +203,7 @@ const MusicPlayer = () => {
   {searchResults.map((song) => (
     <div className="song-item" key={song.id}>
       <span>{song.title} by {song.artist}</span>
-      <button onClick={() => handlePlaySong(song)}>Preview</button>
+      <button onClick={() => handlePlaySong(song)}>Play Song</button>
       <button onClick={() => addSong(song)}>Add to Library</button>
     </div>
   ))}
@@ -215,8 +215,7 @@ const MusicPlayer = () => {
           <h3>Now Playing: {currentSong.title} by {currentSong.artist}</h3>
           <audio ref={audioRef} controls />
           <div className="controls">
-            <button onClick={handlePlaySong}>Play</button>
-            <button onClick={handleStop}>Stop</button>
+            <button onClick={addSong}>Add to Library</button>
             <div className="volume-control">
           <label>Volume:</label>
              <input
@@ -244,6 +243,7 @@ const MusicPlayer = () => {
               <button onClick={() => setCurrentSong(song)}>Play</button>
               <button onClick={() => removeSong(song.id)}>Remove</button>
               <button onClick={() => handleDownloadTrack(song)}>Download</button>
+              <button onClick={() => handleUploadTracks(song)}>Upload Tracks</button>
             </div>
           ))}
         </div>
