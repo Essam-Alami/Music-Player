@@ -38,22 +38,16 @@ const MusicPlayer = () => {
   
       const playHandler = () => audioRef.current.play();
       const pauseHandler = () => audioRef.current.pause();
-      const stopHandler = () => {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      };
-  
       navigator.mediaSession.setActionHandler('play', playHandler);
       navigator.mediaSession.setActionHandler('pause', pauseHandler);
-      navigator.mediaSession.setActionHandler('stop', stopHandler);
   
       return () => {
         navigator.mediaSession.setActionHandler('play', null);
         navigator.mediaSession.setActionHandler('pause', null);
-        navigator.mediaSession.setActionHandler('stop', null);
       };
     }
-  }, [currentSong]);  
+  }, [currentSong]);
+  
 
 
   useEffect(() => {
@@ -93,22 +87,18 @@ const MusicPlayer = () => {
     audioRef.current.volume = newVolume;
   };
 
+  // Upload tracks to local storage
   const handleUploadTracks = (e) => {
     const files = Array.from(e.target.files);
     const newTracks = files.map((file, index) => ({
       id: `${file.name}-${index}`,
-      title: file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
+      title: file.name.replace(/\.[^/.]+$/, ''),
       artist: 'Unknown',
       album: 'Unknown',
-      url: URL.createObjectURL(file), // Create blob URL
+      url: URL.createObjectURL(file),
     }));
-  
-    const updatedLibrary = [...library, ...newTracks];
-    localStorage.setItem('library', JSON.stringify(updatedLibrary));
-    setLibrary(updatedLibrary);
-    if (!currentSong) {
-      setCurrentSong(newTracks[0]); // Set the first uploaded track as the current song
-    }
+
+    addSong(newTracks);
   };
   
 
@@ -149,8 +139,8 @@ const MusicPlayer = () => {
   
 
   const handlePlaySong = (song) => {
-    if (!song.url) {
-      console.error('Invalid song URL for playback:', song.title);
+    if (!song.url || (!song.url.startsWith('http') && !song.url.startsWith('blob:'))) {
+      console.error('Invalid or unsupported song URL:', song.title);
       return;
     }
   
@@ -163,6 +153,7 @@ const MusicPlayer = () => {
       .play()
       .catch((err) => console.error('Playback error:', err.message));
   };
+  
   
   
 
@@ -179,10 +170,11 @@ const MusicPlayer = () => {
     });
   };
   
+  // Manually load library from local storage or API
   const handleLoadLibrary = async () => {
     try {
       await loadLibrary();
-      setLibraryLoaded(true); // Mark library as loaded
+      setLibraryLoaded(true);
     } catch (err) {
       console.error('Failed to load library:', err.message);
     }
@@ -208,13 +200,15 @@ const MusicPlayer = () => {
       </div>
 
       <div className="search-results">
-        {searchResults.map((song) => (
-          <div className="song-item" key={song.id}>
-            <span>{song.title} by {song.artist}</span>
-            <button onClick={() => addSong(song)}>Add to Library</button>
-          </div>
-        ))}
-      </div>
+  {searchResults.map((song) => (
+    <div className="song-item" key={song.id}>
+      <span>{song.title} by {song.artist}</span>
+      <button onClick={() => handlePlaySong(song)}>Preview</button>
+      <button onClick={() => addSong(song)}>Add to Library</button>
+    </div>
+  ))}
+</div>
+
 
       {currentSong && (
         <div className="now-playing">
