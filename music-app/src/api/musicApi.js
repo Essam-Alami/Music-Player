@@ -21,7 +21,6 @@ function throttle(func, limit) {
   };
 }
 
-const EXPRESS_SERVER_URL = 'http://localhost:5173/library';
 
 // Search for songs via the API
 export async function searchSongs(query) {

@@ -6,7 +6,7 @@ const scopes = [
 
 const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const clientSecret = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
-const redirectUri = "http://localhost:5173/callback"; // Update this to your production URL in deployment
+const redirectUri = "musices.vercel.app"; // Update this to your production URL in deployment
 
 // Redirect the user to the Spotify Authorization Page
 export const redirectToSpotifyAuth = () => {
