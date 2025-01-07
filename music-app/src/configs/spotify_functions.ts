@@ -6,7 +6,6 @@ const scopes = [
 
 const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const clientSecret = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
-const redirectUri = "https://accounts.spotify.com/authorize"; // Update this to your production URL in deployment
 
 // Redirect the user to the Spotify Authorization Page
 export const redirectToSpotifyAuth = () => {
