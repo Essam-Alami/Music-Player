@@ -1,266 +1,185 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useMusic } from '../context/MusicContext';
-import { searchSongs } from '../api/musicApi';
-import JSZip from 'jszip'; // Add JSZip for creating library zip downloads
-import { saveAs } from 'file-saver'; // For downloading files
-import './MusicPlayer.css';
-import { debounce } from 'lodash';
+import { useState, useEffect } from "react";
+import { useMusic } from "../context/MusicContext";
+import { searchSongsFromSpotify } from "../api/musicApi";
+import { getSpotifyAccessToken } from "../configs/spotify_functions";
 
 const MusicPlayer = () => {
-  const {
-    library,
-    currentSong,
-    setCurrentSong,
-    addSong,
-    loadLibrary,
-  } = useMusic();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { setCurrentSong, addSong, removeSong } = useMusic();
+
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [error, setError] = useState(null);
-  const [volume, setVolume] = useState(1);
-  const [libraryLoaded, setLibraryLoaded] = useState(false); // Track if library is loaded
-  const audioRef = useRef(null);
+  const [spotifyAccessToken, setSpotifyAccessToken] = useState(null);
+  const libraryFromLocalStorage = JSON.parse(localStorage.getItem("library"));
+  const [musicLibrary, setMusicLibrary] = useState(libraryFromLocalStorage || []);
+  const [currentSpotifyTrackId, setCurrentSpotifyTrackId] = useState(null);
 
+  // Initialize Spotify Player
   useEffect(() => {
-   
-  }, [loadLibrary]);
-
-  useEffect(() => {
-    if ('mediaSession' in navigator && currentSong) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: currentSong.title,
-        artist: currentSong.artist,
-        album: currentSong.album || 'Unknown Album',
-        artwork: currentSong.coverArt
-          ? [{ src: currentSong.coverArt, sizes: '96x96', type: 'image/png' }]
-          : [{ src: '/default-cover.png', sizes: '96x96', type: 'image/png' }],
-      });
-  
-      const playHandler = () => audioRef.current.play();
-      const pauseHandler = () => audioRef.current.pause();
-      navigator.mediaSession.setActionHandler('play', playHandler);
-      navigator.mediaSession.setActionHandler('pause', pauseHandler);
-  
-      return () => {
-        navigator.mediaSession.setActionHandler('play', null);
-        navigator.mediaSession.setActionHandler('pause', null);
-      };
-    }
-  }, [currentSong]);
-  
-
-
-  useEffect(() => {
-    return () => {
-      library.forEach((song) => {
-        if (song.url.startsWith('blob:')) {
-          URL.revokeObjectURL(song.url);
-        }
-      });
+    const fetchSpotifyKey = async () => {
+      const token = await getSpotifyAccessToken();
+      setSpotifyAccessToken(token);
     };
-  }, [library]);
-  
 
+    fetchSpotifyKey();
+  }, []);
+
+  // Handle Search
   const handleSearch = async () => {
     try {
       setError(null);
-      const results = await searchSongs(searchQuery);
+      const results = await searchSongsFromSpotify(searchQuery, spotifyAccessToken);
       setSearchResults(results);
     } catch (err) {
-      console.error('Search failed:', err.message);
+      console.error("Search failed:", err.message);
       setError(`Search failed: ${err.message}`);
     }
   };
 
-
-  const handleStop = () => {
-    if (currentSong?.id !== song.id) {
-      setCurrentSong(song);
-    }
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
+  // Add song to library
+  const addSongToLibrary = (song) => {
+    addSong(song);
+    setMusicLibrary((prev) => [...prev, song]);
   };
 
-  const handleVolumeChange = (e) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    audioRef.current.volume = newVolume;
+  // Remove song from library
+  const removeSongFromLibrary = (songId) => {
+    removeSong(songId);
+    setMusicLibrary((prev) => prev.filter((song) => song.id !== songId));
   };
 
-  // Upload tracks to local storage
-  const handleUploadTracks = (e) => {
-    const files = Array.from(e.target.files);
-    const newTracks = files.map((file, index) => ({
-      id: `${file.name}-${index}`,
-      title: file.name.replace(/\.[^/.]+$/, ''),
-      artist: 'Unknown',
-      album: 'Unknown',
-      url: URL.createObjectURL(file),
-    }));
-
-    addSong(newTracks);
-  };
-  
-
-  const handleDownloadTrack = (song) => {
-    const link = document.createElement('a');
-    link.href = song.url;
-    link.download = `${song.title}.mp3`;
-    link.click();
+  // Handle Play Button Click
+  const playSong = (trackId) => {
+    setCurrentSpotifyTrackId(trackId);
   };
 
-  
-  const handleDownloadLibrary = async () => {
-    try {
-      const zip = new JSZip();
-      const folder = zip.folder('MusicLibrary');
-      const CHUNK_SIZE = 3;
-  
-      for (let i = 0; i < library.length; i += CHUNK_SIZE) {
-        const chunk = library.slice(i, i + CHUNK_SIZE);
-        const blobs = await Promise.all(
-          chunk.map(async (song) => {
-            const response = await fetch(song.url);
-            return response.blob();
-          })
-        );
-        blobs.forEach((blob, index) => {
-          const song = chunk[index];
-          folder.file(`${song.title}.mp3`, blob);
-        });
-      }
-  
-      const content = await zip.generateAsync({ type: 'blob' });
-      saveAs(content, 'MusicLibrary.zip');
-    } catch (error) {
-      console.error('Library download failed:', error.message);
-    }
-  };  
-  
-
-  const handlePlaySong = (song) => {
-    if (!song.url || (!song.url.startsWith('http') && !song.url.startsWith('blob:'))) {
-      console.error('Invalid or unsupported song URL:', song.title);
-      return;
-    }
-  
-    if (currentSong?.id !== song.id) {
-      setCurrentSong(song);
-    }
-  
-    audioRef.current.src = song.url; // Set the audio source
-    audioRef.current
-      .play()
-      .catch((err) => console.error('Playback error:', err.message));
-  };  
-  
-  
-  
-
-  const debouncedSetLibrary = debounce((library) => {
-    localStorage.setItem('library', JSON.stringify(library));
-    setLibrary(library);
-  }, 500);
-  
-  const removeSong = (songId) => {
-    setLibrary((prev) => {
-      const updatedLibrary = prev.filter((song) => song.id !== songId);
-      debouncedSetLibrary(updatedLibrary);
-      return updatedLibrary;
-    });
-  };
-  
-  // Manually load library from local storage or API
-  const handleLoadLibrary = async () => {
-    try {
-      await loadLibrary();
-      setLibraryLoaded(true);
-    } catch (err) {
-      console.error('Failed to load library:', err.message);
-    }
-  };
-  
   return (
-    
-    <div className="music-player">
-      {error && <div className="error">{error}</div>}
-      <div className="library-load-button">
-        {!libraryLoaded && (
-          <button onClick={handleLoadLibrary}>Load Library</button>
-        )}
-      </div>
-      <div className="search-bar">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search songs..."
-        />
-        <button onClick={handleSearch}>Search</button>
-      </div>
+      <div className="bg-gray-900 text-white min-h-screen font-sans rounded-lg">
+        {/* Now Playing Section */}
+        <header className="bg-gradient-to-r from-purple-600 to-blue-500 p-6 shadow-lg ">
+          <h1 className="text-3xl font-bold text-center">Music Player</h1>
+          {currentSpotifyTrackId && (
+              <div className="mt-6 flex justify-center">
+                <iframe
+                    src={`https://open.spotify.com/embed/track/${currentSpotifyTrackId}`}
+                    frameBorder="0"
+                    className="w-full max-w-lg h-20 rounded-lg shadow-md"
+                    allow="encrypted-media"
+                ></iframe>
+              </div>
+          )}
+        </header>
 
-      <div className="search-results">
-  {searchResults.map((song) => (
-    <div className="song-item" key={song.id}>
-      <span>{song.title} by {song.artist}</span>
-      <button onClick={() => handlePlaySong(song)}>Play Song</button>
-      <button onClick={() => addSong(song)}>Add to Library</button>
-    </div>
-  ))}
-</div>
+        <div className="container mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Search Section */}
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+            {error && (
+                <div className="bg-red-500 text-white p-3 rounded mb-4">{error}</div>
+            )}
 
-
-      {currentSong && (
-        <div className="now-playing">
-          <h3>Now Playing: {currentSong.title} by {currentSong.artist}</h3>
-          <audio ref={audioRef} controls />
-          <div className="controls">
-            <button onClick={addSong}>Add to Library</button>
-            <div className="volume-control">
-          <label>Volume:</label>
-             <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={volume}
-                onChange={handleVolumeChange}
-                aria-label="Volume Control"
-       />
-          <span>{Math.round(volume * 100)}%</span>
-           </div>
-
-          </div>
-        </div>
-      )}
-
-      <h3>Your Library</h3>
-      {libraryLoaded && (
-        <div className="library">
-          {library.map((song) => (
-            <div className="song-item" key={song.id}>
-              <span>{song.title} by {song.artist}</span>
-              <button onClick={() => setCurrentSong(song)}>Play</button>
-              <button onClick={() => removeSong(song.id)}>Remove</button>
-              <button onClick={() => handleDownloadTrack(song)}>Download</button>
-              <button onClick={() => handleUploadTracks(song)}>Upload Tracks</button>
+            <h2 className="text-xl font-semibold mb-4">Search Songs</h2>
+            <div className="flex items-center gap-4 mb-6">
+              <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search songs..."
+                  className="flex-1 p-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring focus:ring-purple-400"
+              />
+              <button
+                  onClick={handleSearch}
+                  className="bg-purple-600 hover:bg-purple-700 transition text-white px-4 py-2 rounded-lg"
+              >
+                Search
+              </button>
             </div>
-          ))}
+
+            <h3 className="text-lg font-semibold mb-2">Search Results</h3>
+            <div className="space-y-4">
+              {searchResults.map((song) => (
+                  <div
+                      key={song.id}
+                      className="flex items-center justify-between bg-gray-700 p-4 rounded-lg shadow-md"
+                  >
+                    <div className="flex items-center gap-4">
+                      <img
+                          className="h-16 w-16 rounded-lg"
+                          src={song.coverArt}
+                          alt={song.title}
+                      />
+                      <div>
+                        <p className="font-bold text-lg">{song.title}</p>
+                        <p className="text-sm text-gray-300">{song.artist}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                          onClick={() => playSong(song.id)}
+                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
+                      >
+                        Play
+                      </button>
+                      <button
+                          onClick={() => addSongToLibrary(song)}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Music Library Section */}
+          {musicLibrary && musicLibrary.length > 0 && (
+              <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 className="text-xl font-semibold mb-4">Your Music Library</h2>
+                <div className="space-y-4">
+                  {musicLibrary.map((song) => (
+                      <div
+                          key={song.id}
+                          className="flex items-center justify-between bg-gray-700 p-4 rounded-lg shadow-md"
+                      >
+                        <div className="flex items-center gap-4">
+                          <img
+                              className="h-16 w-16 rounded-lg"
+                              src={song.coverArt}
+                              alt={song.title}
+                          />
+                          <div>
+                            <p className="font-bold text-lg">{song.title}</p>
+                            <p className="text-sm text-gray-300">{song.artist}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                              onClick={() => playSong(song.id)}
+                              className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
+                          >
+                            Play
+                          </button>
+                          <button
+                              onClick={() => removeSongFromLibrary(song.id)}
+                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                  ))}
+                </div>
+              </div>
+          )}
         </div>
-      )}
-    </div>
+
+        <footer className={"m-5 p-4 text-center"}>
+          <p>&copy; 2024 - All Rights Reserved</p>
+        </footer>
+      </div>
   );
 };
 
 export default MusicPlayer;
-
-
-
-
-
-
-
-
-
-
-

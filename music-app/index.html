@@ -7,17 +7,19 @@
     <!-- Updated CSP to include hash and allow inline scripts -->
     <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk.scdn.co;
     style-src 'self' 'unsafe-inline';
     font-src 'self';
     img-src 'self' data: https://i.scdn.co;
-    connect-src 'self' https://spotify23.p.rapidapi.com blob:;
+    connect-src 'self' https://accounts.spotify.com https://api.spotify.com;
+    frame-src 'self' https://sdk.scdn.co https://open.spotify.com;
     media-src 'self' https://spotify23.p.rapidapi.com blob:;
-  "> 
+">
     <title>&copy; Musices</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
   </body>
 </html>

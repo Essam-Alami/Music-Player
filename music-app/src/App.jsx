@@ -1,25 +1,29 @@
-import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import MusicPlayer from './components/MusicPlayer';
 import { MusicProvider } from './context/MusicContext';
-import './App.css';
+import Callback from "./components/CallbackPage.jsx";
+
 
 function App() {
-  return (
-    <MusicProvider>
-      <div className="app">
-        <div className="container">
-          <h1>🎵 Musices 🎵</h1>
-          <MusicPlayer />
-          <footer>
-            <p>&copy; 2024 - All Rights Reserved</p>
-          </footer>
-        </div>
-      </div>
-    </MusicProvider>
-  );
+    return (
+        <Router>
+            <MusicProvider>
+                <div className="m-5">
+                    {/*<h1 className="text-center">🎵 Musics 🎵</h1>*/}
+
+                    <Routes>
+                        {/* Main Music Player Page */}
+                        <Route path="/" element={<MusicPlayer />} />
+
+                        {/* Callback Page */}
+                        <Route path="/callback" element={<Callback />} />
+
+                        {/* Add other routes as necessary */}
+                    </Routes>
+                </div>
+            </MusicProvider>
+        </Router>
+    );
 }
 
 export default App;
-
-
-

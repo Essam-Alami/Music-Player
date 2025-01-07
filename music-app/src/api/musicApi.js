@@ -1,3 +1,5 @@
+import axios from "axios";
+
 const BASE_URL = 'https://spotify23.p.rapidapi.com';
 
 const API_HEADERS = {
@@ -107,6 +109,35 @@ export default {
   fetchLibrary: throttledFetchLibrary,
 };
 
+// -------------------------------
+export const searchSongsFromSpotify = async (query, token) => {
+  try {
+    const response = await axios.get('https://api.spotify.com/v1/search', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        q: query,
+        type: 'track',
+        limit: 10, // Adjust the number of results as needed
+      },
+    });
 
+    console.log('Search response:', response.data);
+
+    return response.data.tracks.items.map((item) => ({
+      id: item.id,
+      title: item.name,
+      artist: item.artists[0].name,
+      album: item.album.name,
+      coverArt: item.album.images[0]?.url || '/default-cover.png',
+      uri: item.uri, // This is the Spotify URI of the track
+      preview_url: item.preview_url, // This is the preview URL of the track
+    }));
+  } catch (err) {
+    console.error('Error searching songs:', err.message);
+    throw new Error('Error fetching songs from Spotify');
+  }
+};
  
 

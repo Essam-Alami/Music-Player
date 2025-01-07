@@ -1,7 +1,7 @@
-import * as React from "react";
+import  React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 
-const Slider = React.forwardRef(({ className, ...props }, ref) => {
+const Slider = React.forwardRef(({  ...props }, ref) => {
   console.log('Rendering Slider with props:', props); // Debugging
   return (
     <SliderPrimitive.Root

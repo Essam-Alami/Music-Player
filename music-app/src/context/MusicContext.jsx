@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import  { createContext, useContext, useState } from 'react';
 import { fetchLibrary, addToLibrary } from '../api/musicApi';
 
 
@@ -19,8 +19,6 @@ export function MusicProvider({ children }) {
       setError(err.message);
     }
   };
-  
-  
 
   const addSong = async (song) => {
     try {
@@ -31,12 +29,6 @@ export function MusicProvider({ children }) {
       setError(err.message);
     }
   };
-  
-  
-  
-  
-  
-  
 
   const removeSong = (songId) => {
     setLibrary((prev) => {
