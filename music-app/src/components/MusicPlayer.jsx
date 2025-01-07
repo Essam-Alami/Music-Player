@@ -57,7 +57,7 @@ const MusicPlayer = () => {
       <div className="bg-gray-900 text-white min-h-screen font-sans rounded-lg">
         {/* Now Playing Section */}
         <header className="bg-gradient-to-r from-purple-600 to-blue-500 p-6 shadow-lg ">
-          <h1 className="text-3xl font-bold text-center">Music Player</h1>
+          <h1 className="text-3xl font-bold text-center">&copy; Musices</h1>
           {currentSpotifyTrackId && (
               <div className="mt-6 flex justify-center">
                 <iframe
