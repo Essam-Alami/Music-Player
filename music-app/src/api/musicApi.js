@@ -119,7 +119,7 @@ export const searchSongsFromSpotify = async (query, token) => {
       params: {
         q: query,
         type: 'track',
-        limit: 10, // Adjust the number of results as needed
+        limit: 50, // Adjust the number of results as needed
       },
     });
 
