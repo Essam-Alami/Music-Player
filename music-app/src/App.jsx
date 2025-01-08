@@ -8,7 +8,7 @@ function App() {
     <Router>
       <MusicProvider>
         <div className="m-5">
-          {/*<h1 className="text-center">🎵 Musics 🎵</h1>*/}
+          {/*<h1 className="text-center">🎵 Musices 🎵</h1>*/}
 
           <Routes>
             {/* Main Music Player Page */}
